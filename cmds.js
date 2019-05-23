@@ -148,8 +148,25 @@ exports.editCmd = (rl, id) => {
  * @param id Clave del quiz a probar.
  */
 exports.testCmd = (rl, id) => {
-    log('Probar el quiz indicado.', 'red');
-    rl.prompt();
+    // Comprueba el id
+    if(typeof id === 'undefined'){
+        errorlog(`Falta el parámetro id.`);
+        rl.prompt();
+    }else{
+        try{
+            // Introduce en una constante la pregunta a realizar
+            const quiz = model.getByIndex(id);
+            // Realiza la pregunta y espera una respuesta
+            rl.question(colorize(`${quiz.question}: `, 'red'), answer => {
+                // Comprueba sí la respuesta introducida es correcta 
+                answer.toLowerCase().trim() === quiz.answer.toLowerCase() ? biglog('CORRECTO', 'green') : biglog('INCORRECTO', 'red');
+                rl.prompt();
+            });
+        }catch(error){
+            errorlog(error.message);
+            rl.prompt();
+        }
+    }
 };
 
 
