@@ -177,8 +177,56 @@ exports.testCmd = (rl, id) => {
  * @param rl Objeto readline usado para implementar el CLI.
  */
 exports.playCmd = rl => {
-    log('Jugar.', 'red');
-    rl.prompt();
+    // Variable que recoge el marcador
+    let score = 0;
+    // Array que guarda las preguntas aún no realizadas
+    let toBeResolved = [];
+    // Constante con todas las preguntas
+    const quizzes = model.getAll();
+    // Introduce los indices en el array
+    for(let i = 0; i < quizzes.length; i++){
+        toBeResolved.push(i);
+    }
+
+    // Función que se llama de forma recursiva hasta finalizar el juego,
+    // ya sea por responder todas las preguntas o por error cometido.
+    const playOne = () => {
+        //Comprueba que el array no este vacío
+        if(toBeResolved.length === 0){
+            // Muestra el marcador
+            log(colorize('Has acertado: ', 'green'));
+            biglog(score, 'green');
+            rl.prompt();
+        }else{
+            // Número aleatorio
+            let random = Math.round(Math.random() * (toBeResolved.length - 1)) ;            
+            // Escoge un id del array
+            let id = toBeResolved[random];
+            // Elimina del array el id
+            toBeResolved.splice(random, 1);
+            // Recoge la pregunta con el id 
+            let quiz = model.getByIndex(id);
+            // Realiza la pregunta y aguarda una respuesta
+            rl.question(colorize(`${quiz.question}: `, 'red'), answer => {
+                // Comprueba si la respuesta es correcta
+                if(answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()){
+                    biglog('CORRECTO', 'green');
+                    // Incrementa los aciertos                    
+                    score++;
+                    log(colorize(`Lleva ${score} aciertos`), 'green');
+                    playOne();
+                }else{
+                    // Si falla finaliza el juego
+                    biglog('INCORRECTO', 'red');
+                    log(`Fin del juego.`, 'red');
+                    log(`Aciertos:`, 'green');
+                    biglog(score, 'green');
+                    rl.prompt();
+                }
+            });
+        }
+    }
+    playOne();
 };
 
 
